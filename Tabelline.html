@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ripassa le Tabelline!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #ffeb3b, #4caf50);
+            overflow: hidden;
+        }
+        .game-container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.3);
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+        }
+        #timer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: #d32f2f;
+        }
+        #score {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #1976d2;
+        }
+        #operation {
+            font-size: 80px;
+            margin: 50px 0;
+            color: #0288d1;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        button {
+            padding: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            border: none;
+            border-radius: 10px;
+            background: #ffb300;
+            color: white;
+            transition: transform 0.2s, background 0.3s;
+        }
+        button:hover {
+            transform: scale(1.1);
+        }
+        button.correct {
+            background: #4caf50;
+            animation: pulse 0.5s;
+        }
+        button.wrong {
+            background: #d32f2f;
+            animation: shake 0.3s;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        #game-over {
+            display: none;
+            font-size: 36px;
+            color: #d32f2f;
+            margin-top: 20px;
+        }
+        #restart {
+            display: none;
+            margin: 20px auto;
+            padding: 15px 30px;
+            font-size: 20px;
+            background: #0288d1;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div id="timer">Tempo: 60</div>
+        <div id="score">Punteggio: 0</div>
+        <div id="operation">2 x 3</div>
+        <div class="buttons">
+            <button onclick="checkAnswer(this)"></button>
+            <button onclick="checkAnswer(this)"></button>
+            <button onclick="checkAnswer(this)"></button>
+            <button onclick="checkAnswer(this)"></button>
+        </div>
+        <div id="game-over">Tempo Scaduto!</div>
+        <button id="restart" onclick="restartGame()">Rigioca</button>
+    </div>
+
+    <script>
+        let timeLeft = 60;
+        let score = 0;
+        let currentNumbers = [];
+        let correctAnswer;
+        let timer;
+
+        function startGame() {
+            timeLeft = 60;
+            score = 0;
+            updateScore();
+            document.getElementById('game-over').style.display = 'none';
+            document.getElementById('restart').style.display = 'none';
+            startTimer();
+            generateQuestion();
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = `Tempo: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function generateQuestion() {
+            currentNumbers = [Math.floor(Math.random() * 10) + 1, Math.floor(Math.random() * 10) + 1];
+            correctAnswer = currentNumbers[0] * currentNumbers[1];
+            document.getElementById('operation').textContent = `${currentNumbers[0]} x ${currentNumbers[1]}`;
+
+            const buttons = document.querySelectorAll('.buttons button');
+            const answers = new Set([correctAnswer]);
+
+            while (answers.size < 4) {
+                const randomAnswer = correctAnswer + Math.floor(Math.random() * 20) - 10;
+                if (randomAnswer !== correctAnswer && randomAnswer > 0) {
+                    answers.add(randomAnswer);
+                }
+            }
+
+            const answerArray = Array.from(answers);
+            // Mescola l'array delle risposte per posizionare la risposta corretta in modo casuale
+            for (let i = answerArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [answerArray[i], answerArray[j]] = [answerArray[j], answerArray[i]];
+            }
+
+            buttons.forEach((button, index) => {
+                button.textContent = answerArray[index];
+                button.classList.remove('correct', 'wrong');
+                button.disabled = false;
+            });
+        }
+
+        function checkAnswer(button) {
+            const selectedAnswer = parseInt(button.textContent);
+            const buttons = document.querySelectorAll('.buttons button');
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selectedAnswer === correctAnswer) {
+                button.classList.add('correct');
+                score++;
+                updateScore();
+                setTimeout(generateQuestion, 1000);
+            } else {
+                button.classList.add('wrong');
+                score--;
+                updateScore();
+                setTimeout(() => {
+                    buttons.forEach(btn => {
+                        btn.classList.remove('wrong');
+                        btn.disabled = false;
+                    });
+                }, 1000);
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = `Punteggio: ${score}`;
+        }
+
+        function endGame() {
+            document.getElementById('game-over').style.display = 'block';
+            document.getElementById('restart').style.display = 'block';
+            document.querySelectorAll('.buttons button').forEach(btn => btn.disabled = true);
+        }
+
+        function restartGame() {
+            clearInterval(timer);
+            startGame();
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
