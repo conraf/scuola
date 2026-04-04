@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amici del 10</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            width: 1200px;
+            height: 800px;
+            background-color: lightgreen;
+            border: 12px solid green;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative; /* Per posizionare i div in modo assoluto */
+        }
+        #timer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 36px;
+        }
+        #punteggio {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+        }
+        #numero {
+            font-size: 300px;
+            margin-top: 30px;
+            margin-bottom: 200px;
+        }
+        .tastierino {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            text-align: center;
+            line-height: 80px;
+            border: 2px solid black;
+            margin: 8px;
+            cursor: pointer;
+            font-size: 40px;
+            background-color: orange;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="timer">30</div>
+        <div id="punteggio">Punteggio: 0</div>
+        <div id="numero" class="numero-generato"></div>
+        <div id="tastierino"></div>
+    </div>
+
+    <script>
+        let timerElement = document.getElementById('timer');
+        let numeroElement = document.getElementById('numero');
+        let tastierinoElement = document.getElementById('tastierino');
+        let punteggioElement = document.getElementById('punteggio');
+        let punteggio = 0;
+        let tempoRimanente = 30;
+        let numeriUsati = [];
+
+        function generaNumero() {
+            let numeroCasuale;
+            do {
+                numeroCasuale = Math.floor(Math.random() * 9) + 1;
+            } while (numeriUsati.includes(numeroCasuale) && numeriUsati.length < 9);
+            numeriUsati.push(numeroCasuale);
+            numeroElement.textContent = numeroCasuale;
+        }
+
+        function creaTastierino() {
+            tastierinoElement.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                let button = document.createElement('div');
+                button.classList.add('tastierino');
+                button.textContent = i;
+                button.onclick = () => {
+                    if (i + parseInt(numeroElement.textContent) === 10) {
+                        punteggio++;
+                        punteggioElement.textContent = 'Punteggio: ' + punteggio;
+                        generaNumero();
+                        creaTastierino();
+                    } else {
+                        alert('Sbagliato! Prova ancora.');
+                    }
+                };
+                tastierinoElement.appendChild(button);
+            }
+        }
+
+        function riavviaGioco() {
+            punteggio = 0;
+            tempoRimanente = 30;
+            numeriUsati = [];
+            punteggioElement.textContent = 'Punteggio: 0';
+            timerElement.textContent = tempoRimanente;
+            generaNumero();
+            creaTastierino();
+            avviaTimer();
+        }
+
+        function avviaTimer() {
+            let interval = setInterval(() => {
+                tempoRimanente--;
+                timerElement.textContent = tempoRimanente;
+                if (tempoRimanente === 0) {
+                    clearInterval(interval);
+                    if (confirm('Tempo scaduto! Il tuo punteggio è: ' + punteggio + '. Vuoi ricominciare?')) {
+                        riavviaGioco();
+                    }
+                }
+            }, 1000);
+        }
+
+        generaNumero();
+        creaTastierino();
+        avviaTimer();
+    </script>
+</body>
+</html>
