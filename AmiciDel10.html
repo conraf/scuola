@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amici del 10</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --green-dark:   #1a6b1a;
+            --green-mid:    #2d8a2d;
+            --green-light:  #c8f0c0;
+            --green-pale:   #e8fae4;
+            --orange:       #f5a623;
+            --orange-dark:  #d4891a;
+            --orange-light: #fdecc8;
+            --black:        #111;
+            --text-dark:    #1a2e1a;
+            --white:        #ffffff;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(ellipse at top, #1a4d1a 0%, #0a1f0a 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Nunito', Arial, sans-serif;
+            padding: clamp(12px, 3vw, 32px);
+        }
+
+        /* ── CONTAINER ── */
+        .container {
+            width: min(96vw, 700px);
+            background: var(--green-pale);
+            border: clamp(4px, 1vw, 10px) solid var(--green-mid);
+            border-radius: clamp(16px, 3vw, 32px);
+            padding: clamp(16px, 3vw, 36px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(12px, 2.5vw, 24px);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.6);
+            position: relative;
+        }
+
+        /* ── HEADER BAR ── */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            background: var(--green-mid);
+            color: var(--white);
+            border-radius: 50px;
+            padding: clamp(6px, 1.2vw, 10px) clamp(14px, 2.5vw, 22px);
+            font-size: clamp(14px, 2.5vw, 20px);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        /* timer */
+        .timer-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        #timer {
+            font-size: clamp(28px, 6vw, 48px);
+            font-weight: 900;
+            color: var(--green-dark);
+            line-height: 1;
+            min-width: 3ch;
+            text-align: center;
+            transition: color 0.3s;
+        }
+        #timer.warning { color: var(--orange-dark); }
+        #timer.danger  { color: #cc2222; animation: pulse 0.5s infinite alternate; }
+
+        .timer-bar-bg {
+            width: clamp(80px, 15vw, 120px);
+            height: 6px;
+            background: rgba(0,0,0,0.15);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .timer-bar {
+            height: 100%;
+            background: var(--green-mid);
+            border-radius: 3px;
+            transition: width 1s linear, background 0.3s;
+        }
+
+        /* ── TITLE ── */
+        h1 {
+            font-size: clamp(20px, 4.5vw, 34px);
+            font-weight: 900;
+            color: var(--green-dark);
+            letter-spacing: -0.01em;
+        }
+
+        /* ── PROMPT ── */
+        .prompt {
+            font-size: clamp(14px, 2.5vw, 18px);
+            color: var(--text-dark);
+            opacity: 0.75;
+            text-align: center;
+        }
+
+        /* ── BIG NUMBER ── */
+        .number-card {
+            background: var(--white);
+            border: clamp(3px, 0.6vw, 6px) solid var(--green-mid);
+            border-radius: clamp(16px, 3vw, 24px);
+            width: clamp(100px, 28vw, 200px);
+            height: clamp(100px, 28vw, 200px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            transition: transform 0.15s;
+        }
+        #numero {
+            font-size: clamp(64px, 18vw, 130px);
+            font-weight: 900;
+            color: var(--green-dark);
+            line-height: 1;
+        }
+
+        /* ── FEEDBACK ── */
+        .feedback {
+            font-size: clamp(16px, 3.5vw, 24px);
+            font-weight: 700;
+            height: clamp(24px, 4vw, 32px);
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+        .feedback.correct { color: var(--green-dark); }
+        .feedback.wrong   { color: #cc2222; }
+        .feedback.hidden  { opacity: 0; }
+
+        /* ── KEYPAD ── */
+        .tastierino {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(6px, 1.5vw, 14px);
+            width: min(100%, 380px);
+        }
+
+        .key {
+            aspect-ratio: 1;
+            background: var(--orange);
+            border: none;
+            border-radius: clamp(10px, 2vw, 18px);
+            font-size: clamp(20px, 5vw, 38px);
+            font-weight: 900;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--orange-dark), 0 6px 12px rgba(0,0,0,0.2);
+            transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
+            font-family: 'Nunito', Arial, sans-serif;
+        }
+        .key:hover  { background: #ffc04a; transform: translateY(-2px); }
+        .key:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--orange-dark), 0 2px 4px rgba(0,0,0,0.2); }
+        .key.correct-key { background: var(--green-light); box-shadow: 0 4px 0 var(--green-mid); animation: pop 0.3s ease; }
+        .key.wrong-key   { background: #ffcccc; box-shadow: 0 4px 0 #cc4444; animation: shake 0.3s ease; }
+
+        /* ── END SCREEN ── */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 31, 10, 0.88);
+            border-radius: inherit;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(12px, 3vw, 24px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s;
+            padding: 24px;
+        }
+        .overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .overlay h2 {
+            color: var(--white);
+            font-size: clamp(24px, 6vw, 42px);
+            font-weight: 900;
+            text-align: center;
+        }
+        .overlay .score-big {
+            font-size: clamp(52px, 14vw, 100px);
+            font-weight: 900;
+            color: var(--orange);
+            line-height: 1;
+        }
+        .overlay p {
+            color: var(--green-light);
+            font-size: clamp(14px, 3vw, 20px);
+            text-align: center;
+        }
+        .btn-restart {
+            background: var(--orange);
+            border: none;
+            border-radius: 50px;
+            padding: clamp(12px, 2.5vw, 18px) clamp(28px, 6vw, 48px);
+            font-size: clamp(16px, 3.5vw, 22px);
+            font-weight: 900;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 4px 0 var(--orange-dark);
+            font-family: 'Nunito', Arial, sans-serif;
+            transition: transform 0.1s, box-shadow 0.1s;
+            margin-top: 8px;
+        }
+        .btn-restart:hover  { transform: translateY(-2px); }
+        .btn-restart:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--orange-dark); }
+
+        /* ── ANIMATIONS ── */
+        @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.08); } }
+        @keyframes pop {
+            0%   { transform: scale(1); }
+            50%  { transform: scale(1.18); }
+            100% { transform: scale(1); }
+        }
+        @keyframes shake {
+            0%   { transform: translateX(0); }
+            25%  { transform: translateX(-6px); }
+            75%  { transform: translateX(6px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes numberIn {
+            from { transform: scale(0.6); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+        .number-in { animation: numberIn 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    </style>
+</head>
+<body>
+
+<div class="container" id="container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <div class="badge" id="punteggio">Punteggio: 0</div>
+        <h1>Amici del 10</h1>
+        <div class="timer-wrap">
+            <div id="timer">30</div>
+            <div class="timer-bar-bg"><div class="timer-bar" id="timerBar"></div></div>
+        </div>
+    </div>
+
+    <!-- PROMPT -->
+    <p class="prompt">Quale numero manca per arrivare a 10?</p>
+
+    <!-- BIG NUMBER -->
+    <div class="number-card">
+        <div id="numero"></div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="feedback hidden" id="feedback">✓ Esatto!</div>
+
+    <!-- KEYPAD -->
+    <div class="tastierino" id="tastierino"></div>
+
+    <!-- END OVERLAY -->
+    <div class="overlay" id="overlay">
+        <h2>Tempo scaduto!</h2>
+        <div class="score-big" id="finalScore">0</div>
+        <p id="endMessage">punti in 30 secondi</p>
+        <button class="btn-restart" id="btnRestart">Gioca ancora</button>
+    </div>
+
+</div>
+
+<script>
+    const timerEl   = document.getElementById('timer');
+    const timerBar  = document.getElementById('timerBar');
+    const numeroEl  = document.getElementById('numero');
+    const keypadEl  = document.getElementById('tastierino');
+    const scoreEl   = document.getElementById('punteggio');
+    const feedbackEl= document.getElementById('feedback');
+    const overlay   = document.getElementById('overlay');
+    const finalScore= document.getElementById('finalScore');
+    const endMessage= document.getElementById('endMessage');
+    const btnRestart= document.getElementById('btnRestart');
+
+    const TEMPO_TOTALE = 30;
+    let punteggio = 0;
+    let tempoRimanente = TEMPO_TOTALE;
+    let interval = null;
+    let feedbackTimeout = null;
+
+    /* ─── NUMERO ─── */
+    function generaNumero() {
+        const n = Math.floor(Math.random() * 9) + 1;
+        numeroEl.classList.remove('number-in');
+        void numeroEl.offsetWidth; // reflow
+        numeroEl.textContent = n;
+        numeroEl.classList.add('number-in');
+    }
+
+    /* ─── TASTIERINO ─── */
+    function creaTastierino() {
+        keypadEl.innerHTML = '';
+        for (let i = 1; i <= 9; i++) {
+            const btn = document.createElement('button');
+            btn.className = 'key';
+            btn.textContent = i;
+            btn.addEventListener('click', () => gestisciClick(btn, i));
+            keypadEl.appendChild(btn);
+        }
+    }
+
+    function gestisciClick(btn, i) {
+        const num = parseInt(numeroEl.textContent);
+        if (i + num === 10) {
+            punteggio++;
+            scoreEl.textContent = 'Punteggio: ' + punteggio;
+            btn.classList.add('correct-key');
+            mostraFeedback(true);
+            setTimeout(() => {
+                btn.classList.remove('correct-key');
+                generaNumero();
+            }, 280);
+        } else {
+            btn.classList.add('wrong-key');
+            mostraFeedback(false);
+            setTimeout(() => btn.classList.remove('wrong-key'), 300);
+        }
+    }
+
+    /* ─── FEEDBACK ─── */
+    function mostraFeedback(corretto) {
+        clearTimeout(feedbackTimeout);
+        feedbackEl.className = 'feedback ' + (corretto ? 'correct' : 'wrong');
+        feedbackEl.textContent = corretto ? '✓ Esatto!' : '✗ Riprova!';
+        feedbackTimeout = setTimeout(() => feedbackEl.classList.add('hidden'), 700);
+    }
+
+    /* ─── TIMER ─── */
+    function aggiornaTimerUI() {
+        timerEl.textContent = tempoRimanente;
+        timerBar.style.width = (tempoRimanente / TEMPO_TOTALE * 100) + '%';
+
+        timerEl.className = '';
+        timerBar.style.background = '';
+        if (tempoRimanente <= 5) {
+            timerEl.classList.add('danger');
+            timerBar.style.background = '#cc2222';
+        } else if (tempoRimanente <= 10) {
+            timerEl.classList.add('warning');
+            timerBar.style.background = '#f5a623';
+        }
+    }
+
+    function avviaTimer() {
+        clearInterval(interval);
+        interval = setInterval(() => {
+            tempoRimanente--;
+            aggiornaTimerUI();
+            if (tempoRimanente === 0) {
+                clearInterval(interval);
+                mostraFine();
+            }
+        }, 1000);
+    }
+
+    /* ─── FINE GIOCO ─── */
+    function mostraFine() {
+        finalScore.textContent = punteggio;
+        if (punteggio === 0) {
+            endMessage.textContent = 'punti... riprova, ce la fai!';
+        } else if (punteggio < 5) {
+            endMessage.textContent = 'punti in 30 secondi. Continua ad allenarti!';
+        } else if (punteggio < 10) {
+            endMessage.textContent = 'punti in 30 secondi. Ottimo!';
+        } else {
+            endMessage.textContent = 'punti in 30 secondi. Sei un campione!';
+        }
+        overlay.classList.add('visible');
+        // blocca tastierino
+        keypadEl.querySelectorAll('.key').forEach(k => k.disabled = true);
+    }
+
+    /* ─── RIAVVIO ─── */
+    function riavviaGioco() {
+        overlay.classList.remove('visible');
+        punteggio = 0;
+        tempoRimanente = TEMPO_TOTALE;
+        scoreEl.textContent = 'Punteggio: 0';
+        feedbackEl.className = 'feedback hidden';
+        aggiornaTimerUI();
+        generaNumero();
+        creaTastierino();
+        avviaTimer();
+    }
+
+    btnRestart.addEventListener('click', riavviaGioco);
+
+    /* ─── TASTIERA FISICA ─── */
+    document.addEventListener('keydown', (e) => {
+        // Invio o Spazio riavviano il gioco se l'overlay è visibile
+        if (overlay.classList.contains('visible')) {
+            if (e.key === 'Enter' || e.key === ' ') riavviaGioco();
+            return;
+        }
+        const n = parseInt(e.key);
+        if (n >= 1 && n <= 9) {
+            const keys = keypadEl.querySelectorAll('.key');
+            const btn = keys[n - 1]; // i tasti sono ordinati 1-9
+            if (btn && !btn.disabled) {
+                btn.focus();
+                gestisciClick(btn, n);
+            }
+        }
+    });
+
+    /* ─── INIT ─── */
+    aggiornaTimerUI();
+    generaNumero();
+    creaTastierino();
+    avviaTimer();
+</script>
+
+</body>
+</html>
